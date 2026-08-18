@@ -1,0 +1,1019 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>POETICA — A Poetry Collective & Sanctuary for Verses</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,400;1,600&family=Plus+Jakarta+Sans:wght@300;400;500;600&family=Caveat:wght@400;600&display=swap" rel="stylesheet" />
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        parchment: {
+                            50: '#fdfbf7',
+                            100: '#f7f3e9',
+                            200: '#ede4d3',
+                            300: '#dfcfb3',
+                            800: '#3a342b',
+                            900: '#231f1a',
+                        },
+                        velvet: {
+                            800: '#1e1b2e',
+                            900: '#12101d',
+                            950: '#0a0912',
+                        },
+                        copper: {
+                            400: '#e08f65',
+                            500: '#c87148',
+                            600: '#a6542f',
+                        }
+                    },
+                    fontFamily: {
+                        serif: ['Cormorant Garamond', 'Georgia', 'serif'],
+                        sans: ['Plus Jakarta Sans', 'sans-serif'],
+                        hand: ['Caveat', 'cursive'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(166, 84, 47, 0.3);
+            border-radius: 3px;
+        }
+
+        .floating-word {
+            animation: float 6s ease-in-out infinite;
+        }
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-10px) rotate(1deg); }
+        }
+
+        .ink-glow {
+            box-shadow: 0 0 25px -5px rgba(200, 113, 72, 0.15);
+        }
+
+        .paper-texture {
+            background-color: #fdfbf7;
+            background-image: radial-gradient(#dfcfb3 0.75px, transparent 0.75px);
+            background-size: 16px 16px;
+        }
+
+        .dark .paper-texture {
+            background-color: #0d0c14;
+            background-image: radial-gradient(#262238 0.75px, transparent 0.75px);
+            background-size: 16px 16px;
+        }
+
+        .word-chip {
+            transition: all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .word-chip:hover {
+            transform: translateY(-3px) scale(1.05);
+        }
+
+        .chart-polygon {
+            transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* Respect prefers-reduced-motion via a class set from JS */
+        .reduced-motion .floating-word {
+            animation: none !important;
+        }
+
+        /* Small improvement: visually-hidden utility for accessibility */
+        .visually-hidden {
+            position: absolute !important;
+            height: 1px;
+            width: 1px;
+            overflow: hidden;
+            clip: rect(1px, 1px, 1px, 1px);
+            white-space: nowrap;
+        }
+    </style>
+</head>
+<body class="dark bg-velvet-950 text-slate-200 font-sans transition-colors duration-500 paper-texture min-h-screen relative overflow-x-hidden selection:bg-copper-500 selection:text-white">
+
+    <!-- Interactive Background Canvas for Ambient Particle Effect -->
+    <canvas id="ambientCanvas" class="fixed inset-0 pointer-events-none z-0 opacity-40"></canvas>
+
+    <!-- Header Navigation -->
+    <header class="sticky top-0 z-50 backdrop-blur-md bg-velvet-950/80 dark:bg-velvet-950/80 border-b border-copper-500/10 transition-colors">
+        <div class="max-w-6xl mx-auto px-6 h-20 flex items-center justify-between">
+            <!-- Brand Logo -->
+            <a href="#" class="flex items-center gap-3 group">
+                <div class="w-9 h-9 rounded-full border border-copper-500/40 flex items-center justify-center text-copper-500 font-serif text-xl group-hover:border-copper-500 group-hover:bg-copper-500/10 transition-all">
+                    P
+                </div>
+                <div>
+                    <span class="font-serif text-2xl tracking-widest text-slate-100 font-light block leading-none">POETICA</span>
+                    <span class="text-[9px] tracking-[0.25em] uppercase text-copper-500/80 font-sans font-medium">A Poetry Collective</span>
+                </div>
+            </a>
+
+            <!-- Navigation Links -->
+            <nav class="hidden md:flex items-center gap-8 text-sm font-light tracking-wider text-slate-300" aria-label="Primary">
+                <a href="#about" class="hover:text-copper-400 transition-colors">The Manifesto</a>
+                <a href="#theme-chart" class="hover:text-copper-400 transition-colors">Thematic Spectrum</a>
+                <a href="#blank-canvas" class="hover:text-copper-400 transition-colors">The Blank Sheet</a>
+                <a href="#circle" class="hover:text-copper-400 transition-colors">Weekly Gathering</a>
+            </nav>
+
+            <!-- Quick Action Controls -->
+            <div class="flex items-center gap-3">
+                <!-- Ambiance Audio Toggle -->
+                <button id="audioToggle" onclick="toggleAudio()" class="p-2.5 rounded-full border border-copper-500/20 text-slate-300 hover:text-copper-400 hover:border-copper-500/40 transition-all flex items-center gap-2 text-xs" title="Toggle Ambient Room Sound" aria-pressed="false" aria-label="Toggle ambient sound">
+                    <i data-lucide="volume-x" id="audioIcon" class="w-4 h-4"></i>
+                    <span class="hidden sm:inline font-mono text-[11px] opacity-70">AMBIANCE</span>
+                </button>
+
+                <!-- Theme Toggle (Dark/Light) -->
+                <button id="themeToggleBtn" onclick="toggleTheme()" class="p-2.5 rounded-full border border-copper-500/20 text-slate-300 hover:text-copper-400 hover:border-copper-500/40 transition-all" title="Toggle Theme" aria-pressed="true" aria-label="Toggle theme">
+                    <i data-lucide="sun" class="w-4 h-4 hidden dark:block" id="sunIcon"></i>
+                    <i data-lucide="moon" class="w-4 h-4 block dark:hidden" id="moonIcon"></i>
+                </button>
+
+                <a href="#circle" class="hidden sm:inline-flex items-center gap-2 px-5 py-2 rounded-full text-xs font-medium tracking-wider bg-copper-500 text-slate-950 hover:bg-copper-400 transition-all shadow-lg shadow-copper-500/20">
+                    <span>JOIN POETICA</span>
+                    <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- HERO SECTION: Blank Page Concept & Floating Poetry Words -->
+    <section class="relative pt-16 pb-24 md:pt-28 md:pb-36 max-w-6xl mx-auto px-6 z-10">
+        <div class="text-center max-w-3xl mx-auto space-y-6">
+            <!-- Badge -->
+            <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-copper-500/30 bg-copper-500/10 text-copper-400 text-xs tracking-widest uppercase font-mono">
+                <span class="w-1.5 h-1.5 rounded-full bg-copper-500 animate-pulse"></span>
+                Founding a New Voice Collective
+            </div>
+
+            <!-- Main Heading -->
+            <h1 class="font-serif text-5xl sm:text-7xl font-normal tracking-tight text-slate-100 leading-[1.1]">
+                Every room begins with <span class="italic font-serif text-copper-400">a blank page</span> and a quiet word.
+            </h1>
+
+            <p class="text-base sm:text-lg text-slate-400 font-light leading-relaxed max-w-2xl mx-auto">
+                <strong class="text-slate-200 font-normal">Poetica</strong> is a sanctuary startup for poets, spoken-word writers, and silent observers. We turn vulnerable thoughts into shared cadence, one stanza at a time.
+            </p>
+
+            <!-- Dynamic Prompt Indicator -->
+            <div class="pt-4 flex flex-col items-center gap-3">
+                <div class="text-xs tracking-widest uppercase text-slate-500 font-mono">Tap any floating word below to seed a thought</div>
+            </div>
+        </div>
+
+        <!-- Interactive Floating Word Cloud (Thematic Words scattered across the hero) -->
+        <div id="wordCloudContainer" class="mt-12 relative min-h-[220px] sm:min-h-[260px] border border-copper-500/15 rounded-3xl p-6 bg-velvet-900/40 backdrop-blur-sm flex flex-wrap items-center justify-center gap-3 sm:gap-4 overflow-hidden ink-glow" role="list" aria-label="Floating prompt words">
+            <!-- Words dynamically rendered with staggered floating animations -->
+        </div>
+    </section>
+
+    <!-- SECTION 1: THEMAP & RADAR CHART -->
+    <section id="theme-chart" class="py-20 border-t border-copper-500/10 bg-velvet-900/30 relative z-10">
+        <div class="max-w-6xl mx-auto px-6">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+                <!-- Left: Explanatory Copy & Interactive Controls -->
+                <div class="lg:col-span-5 space-y-6">
+                    <div class="space-y-2">
+                        <span class="text-xs font-mono tracking-widest text-copper-500 uppercase">OUR THEMATIC DNA</span>
+                        <h2 class="font-serif text-3xl sm:text-4xl text-slate-100 font-light">The Spectrum of Poetica</h2>
+                    </div>
+
+                    <p class="text-slate-400 text-sm leading-relaxed font-light">
+                        We don't restrict our sessions to traditional form. Instead, our poetry group orbits around six primary emotional and stylistic dimensions. Click any theme on the chart to inspect its core prompts.
+                    </p>
+
+                    <!-- Pillar Descriptions Interactive List -->
+                    <div class="space-y-3 pt-2" id="pillarList" aria-live="polite">
+                        <!-- Populated by Javascript -->
+                    </div>
+
+                    <div class="p-4 rounded-xl border border-copper-500/20 bg-copper-500/5 text-xs text-slate-300 font-light flex items-start gap-3">
+                        <i data-lucide="compass" class="w-5 h-5 text-copper-400 shrink-0 mt-0.5"></i>
+                        <div>
+                            <strong class="text-copper-400 font-medium block mb-0.5">Weekly Theme Focus</strong>
+                            <span id="activeThemeDesc">Select a dimension on the radar to reveal our current exploration prompts for the upcoming session.</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right: Custom Interactive SVG Radar Chart -->
+                <div class="lg:col-span-7 flex flex-col items-center justify-center relative">
+                    <div class="relative w-full max-w-[480px] aspect-square flex items-center justify-center">
+                        <svg id="radarSvg" viewBox="0 0 500 500" class="w-full h-full drop-shadow-2xl" role="img" aria-label="Thematic radar chart">
+                            <!-- Background Web Rings -->
+                            <g id="radarRings" stroke="currentColor" class="text-copper-500/15" stroke-width="1" fill="none">
+                                <circle cx="250" cy="250" r="200" stroke-dasharray="4 4" />
+                                <circle cx="250" cy="250" r="150" />
+                                <circle cx="250" cy="250" r="100" stroke-dasharray="4 4" />
+                                <circle cx="250" cy="250" r="50" />
+                            </g>
+
+                            <!-- Axis Lines -->
+                            <g id="radarAxes" stroke="currentColor" class="text-copper-500/20" stroke-width="1"></g>
+
+                            <!-- Filled Polygon -->
+                            <polygon id="radarPolygon" class="chart-polygon fill-copper-500/25 stroke-copper-400 stroke-2" />
+
+                            <!-- Interactive Points -->
+                            <g id="radarPoints"></g>
+
+                            <!-- Labels -->
+                            <g id="radarLabels" class="text-[11px] font-sans font-medium fill-slate-300"></g>
+                        </svg>
+                    </div>
+                    <div class="text-[11px] font-mono text-slate-500 mt-2 flex items-center gap-2">
+                        <span class="w-2 h-2 rounded-full bg-copper-500 inline-block"></span>
+                        Click nodes or categories to balance our collective focus
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+    </section>
+
+    <!-- SECTION 2: INTERACTIVE BLANK CANVAS / MAGNETIC WORD BOARD -->
+    <section id="blank-canvas" class="py-24 border-t border-copper-500/10 relative z-10">
+        <div class="max-w-5xl mx-auto px-6">
+            <div class="text-center max-w-2xl mx-auto space-y-3 mb-12">
+                <span class="text-xs font-mono tracking-widest text-copper-500 uppercase">THE WRITER'S DESK</span>
+                <h2 class="font-serif text-3xl sm:text-5xl text-slate-100 font-light">Interactive Verse Generator</h2>
+                <p class="text-slate-400 text-sm font-light">
+                    Select words from our magnet tray or type directly into the parchment sheet to compose a couplet.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+                <!-- Magnet Word Tray -->
+                <div class="lg:col-span-4 space-y-4 bg-velvet-900/60 border border-copper-500/20 rounded-2xl p-5 backdrop-blur-sm">
+                    <div class="flex items-center justify-between pb-3 border-b border-copper-500/15">
+                        <span class="text-xs font-mono uppercase tracking-wider text-slate-300 flex items-center gap-2">
+                            <i data-lucide="sparkles" class="w-3.5 h-3.5 text-copper-400"></i> Word Magnet Tray
+                        </span>
+                        <button onclick="shuffleTray()" class="text-[11px] text-copper-400 hover:text-copper-300 font-mono flex items-center gap-1" aria-label="Refresh magnet tray">
+                            <i data-lucide="refresh-cw" class="w-3 h-3"></i> Refresh
+                        </button>
+                    </div>
+
+                    <div id="magnetTray" class="flex flex-wrap gap-2 max-h-[300px] overflow-y-auto pr-1" aria-label="Word magnets" role="list">
+                        <!-- Dynamically filled with interactive word chips -->
+                    </div>
+
+                    <div class="pt-3 border-t border-copper-500/10 flex flex-col gap-2">
+                        <button onclick="generateRandomLines()" class="w-full py-2 px-3 rounded-lg border border-copper-500/30 text-copper-300 hover:bg-copper-500/10 text-xs font-mono transition-all flex items-center justify-center gap-2" aria-label="Auto-seed stanza">
+                            <i data-lucide="wand-2" class="w-3.5 h-3.5"></i> Auto-Seed Stanza
+                        </button>
+                        <button onclick="clearCanvasSheet()" class="w-full py-2 px-3 rounded-lg border border-red-500/20 text-red-400/80 hover:bg-red-500/10 text-xs font-mono transition-all" aria-label="Clear blank page">
+                            Clear Blank Page
+                        </button>
+                    </div>
+                </div>
+
+                <!-- The Blank Parchment Sheet -->
+                <div class="lg:col-span-8">
+                    <div class="relative bg-parchment-50 dark:bg-velvet-900 border border-copper-500/30 rounded-2xl p-8 sm:p-10 shadow-2xl transition-all min-h-[380px] flex flex-col justify-between group">
+
+                        <!-- Page Top Bar -->
+                        <div class="flex items-center justify-between border-b border-copper-500/20 pb-4 mb-6 text-slate-400 dark:text-slate-500 text-xs font-mono">
+                            <div class="flex items-center gap-2">
+                                <span class="w-2.5 h-2.5 rounded-full bg-copper-500/80"></span>
+                                <span>POETICA // SHEET #001</span>
+                            </div>
+                            <span id="wordCountDisplay">0 words</span>
+                        </div>
+
+                        <!-- Interactive Text Area -->
+                        <div class="flex-grow relative">
+                            <label for="poemTextarea" class="visually-hidden">Write your verse</label>
+                            <textarea id="poemTextarea" rows="7" aria-label="Write your verse or add words from the magnet tray"
+                                class="w-full bg-transparent font-serif text-xl sm:text-2xl text-slate-800 dark:text-parchment-100 placeholder-slate-400/40 dark:placeholder-slate-600 focus:outline-none resize-none leading-relaxed tracking-wide italic"
+                                placeholder="Click magnet words or start typing your lines here..."></textarea>
+                        </div>
+
+                        <!-- Page Bottom Actions -->
+                        <div class="pt-6 border-t border-copper-500/20 flex flex-wrap items-center justify-between gap-4">
+                            <div class="flex items-center gap-2">
+                                <button onclick="copyPoem()" class="px-4 py-2 rounded-lg bg-copper-500/10 hover:bg-copper-500/20 text-copper-400 text-xs font-medium flex items-center gap-2 transition-all" aria-label="Copy verse to clipboard">
+                                    <i data-lucide="copy" class="w-3.5 h-3.5"></i> Copy Verse
+                                </button>
+                                <span id="copyToast" class="text-xs text-copper-400 opacity-0 transition-opacity font-mono" role="status" aria-live="polite">Copied to clipboard!</span>
+                            </div>
+
+                            <button onclick="submitToCircle()" class="px-5 py-2.5 rounded-lg bg-copper-500 hover:bg-copper-400 text-slate-950 font-medium text-xs flex items-center gap-2 transition-all shadow-md" aria-label="Submit verse to next session">
+                                <i data-lucide="send" class="w-3.5 h-3.5"></i> Submit to Next Session
+                            </button>
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+    </section>
+
+    <!-- SECTION 3: MANIFESTO & CORE PILLARS -->
+    <section id="about" class="py-20 border-t border-copper-500/10 bg-velvet-900/20 relative z-10">
+        <div class="max-w-6xl mx-auto px-6">
+
+            <div class="text-center max-w-2xl mx-auto space-y-3 mb-16">
+                <span class="text-xs font-mono tracking-widest text-copper-500 uppercase">WHY WE GATHER</span>
+                <h2 class="font-serif text-4xl sm:text-5xl text-slate-100 font-light">The Poetica Manifesto</h2>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+
+                <!-- Card 1 -->
+                <div class="p-8 rounded-2xl border border-copper-500/15 bg-velvet-900/50 backdrop-blur-sm space-y-4 hover:border-copper-500/40 transition-all group">
+                    <div class="w-10 h-10 rounded-xl bg-copper-500/10 text-copper-400 flex items-center justify-center font-serif text-xl group-hover:scale-110 transition-transform">
+                        01
+                    </div>
+                    <h3 class="font-serif text-2xl text-slate-100 font-light">No Pretense, Only Raw Drafts</h3>
+                    <p class="text-slate-400 text-xs sm:text-sm font-light leading-relaxed">
+                        We celebrate incomplete thoughts and unpolished couplets. You don't need a published book to take the chair; you only need a voice willing to linger in quiet honesty.
+                    </p>
+                </div>
+
+                <!-- Card 2 -->
+                <div class="p-8 rounded-2xl border border-copper-500/15 bg-velvet-900/50 backdrop-blur-sm space-y-4 hover:border-copper-500/40 transition-all group">
+                    <div class="w-10 h-10 rounded-xl bg-copper-500/10 text-copper-400 flex items-center justify-center font-serif text-xl group-hover:scale-110 transition-transform">
+                        02
+                    </div>
+                    <h3 class="font-serif text-2xl text-slate-100 font-light">Candlelight & Open Cadence</h3>
+                    <p class="text-slate-400 text-xs sm:text-sm font-light leading-relaxed">
+                        Our bi-weekly meetups are structured around thematic prompts. Whether you choose spoken performance, soft reading, or silent listening, the space adapts to your rhythm.
+                    </p>
+                </div>
+
+                <!-- Card 3 -->
+                <div class="p-8 rounded-2xl border border-copper-500/15 bg-velvet-900/50 backdrop-blur-sm space-y-4 hover:border-copper-500/40 transition-all group">
+                    <div class="w-10 h-10 rounded-xl bg-copper-500/10 text-copper-400 flex items-center justify-center font-serif text-xl group-hover:scale-110 transition-transform">
+                        03
+                    </div>
+                    <h3 class="font-serif text-2xl text-slate-100 font-light">The Quarterly Zine</h3>
+                    <p class="text-slate-400 text-xs sm:text-sm font-light leading-relaxed">
+                        Every three months, members curate and hand-press a limited physical poetry chapbook featuring selected verses born inside our circle.
+                    </p>
+                </div>
+
+            </div>
+
+        </div>
+    </section>
+
+    <!-- SECTION 4: JOIN THE CIRCLE FORM -->
+    <section id="circle" class="py-24 border-t border-copper-500/10 relative z-10">
+        <div class="max-w-4xl mx-auto px-6">
+
+            <div class="bg-gradient-to-br from-velvet-900 via-velvet-950 to-velvet-900 border border-copper-500/30 rounded-3xl p-8 sm:p-12 shadow-2xl relative overflow-hidden ink-glow">
+
+                <div class="absolute -right-10 -bottom-10 w-60 h-60 bg-copper-500/10 rounded-full blur-3xl pointer-events-none"></div>
+
+                <div class="relative z-10 text-center space-y-6 max-w-xl mx-auto">
+                    <span class="w-10 h-10 rounded-full bg-copper-500/10 text-copper-400 inline-flex items-center justify-center border border-copper-500/20 mb-2">
+                        <i data-lucide="feather" class="w-5 h-5"></i>
+                    </span>
+
+                    <h2 class="font-serif text-4xl sm:text-5xl text-slate-100 font-light leading-tight">
+                        Pull up a chair to <span class="italic text-copper-400">Poetica</span>.
+                    </h2>
+
+                    <p class="text-slate-400 text-sm font-light">
+                        Leave your name and email to receive details for our next intimate circle, location coordinates, and this week's writing prompt.
+                    </p>
+
+                    <!-- Form -->
+                    <form id="joinForm" onsubmit="handleJoinSubmit(event)" class="space-y-4 text-left pt-2" aria-describedby="joinFormDesc">
+                        <p id="joinFormDesc" class="visually-hidden">Name and email required to request an invitation.</p>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-[11px] font-mono text-slate-400 mb-1.5 uppercase">Your Name / Pseudonym</label>
+                                <input type="text" required placeholder="e.g. Sylvia or Anonymous" aria-label="Your name"
+                                    class="w-full px-4 py-3 rounded-xl bg-velvet-950/80 border border-copper-500/25 text-slate-100 text-sm focus:outline-none focus:border-copper-400 transition-all">
+                            </div>
+                            <div>
+                                <label class="block text-[11px] font-mono text-slate-400 mb-1.5 uppercase">Email Address</label>
+                                <input type="email" required placeholder="poet@domain.com" aria-label="Email address"
+                                    class="w-full px-4 py-3 rounded-xl bg-velvet-950/80 border border-copper-500/25 text-slate-100 text-sm focus:outline-none focus:border-copper-400 transition-all">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-[11px] font-mono text-slate-400 mb-1.5 uppercase">What draws you to poetry? (Optional)</label>
+                            <input type="text" placeholder="e.g., Solitude, rhythm, spoken performance, unexpressed thoughts..." aria-label="What draws you to poetry"
+                                class="w-full px-4 py-3 rounded-xl bg-velvet-950/80 border border-copper-500/25 text-slate-100 text-sm focus:outline-none focus:border-copper-400 transition-all">
+                        </div>
+
+                        <button type="submit" class="w-full py-4 rounded-xl bg-copper-500 hover:bg-copper-400 text-slate-950 font-medium tracking-wider text-xs uppercase transition-all shadow-lg shadow-copper-500/20 flex items-center justify-center gap-2" aria-label="Request invitation to next circle">
+                            <span>Request Invitation to Next Circle</span>
+                            <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                        </button>
+                    </form>
+
+                    <!-- Success Message Modal/Alert -->
+                    <div id="joinSuccess" class="hidden p-6 rounded-xl bg-copper-500/15 border border-copper-500/40 text-center space-y-2" role="status" aria-live="polite" aria-hidden="true">
+                        <i data-lucide="check-circle-2" class="w-8 h-8 text-copper-400 mx-auto"></i>
+                        <h4 class="font-serif text-xl text-slate-100">Welcome to Poetica</h4>
+                        <p class="text-xs text-slate-300 font-light">We've reserved a seat for you. Check your inbox shortly for location details and this week's prompt sheet.</p>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer class="py-12 border-t border-copper-500/10 text-center text-xs text-slate-500 font-mono relative z-10">
+        <div class="max-w-6xl mx-auto px-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div class="flex items-center gap-2 text-slate-400">
+                <span class="font-serif text-base text-slate-200">POETICA</span>
+                <span>— A Startup Collective for Verses</span>
+            </div>
+            <div>
+                Built for poets, thinkers & silent listeners. &copy; <span id="year"></span> Poetica Group.
+            </div>
+        </div>
+    </footer>
+
+    <!-- JAVASCRIPT LOGIC -->
+    <script>
+        // -------------------------
+        // Feature flags & reduced-motion detection
+        // -------------------------
+        let prefersReducedMotion = false;
+        try {
+            prefersReducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+            if (prefersReducedMotion) {
+                document.documentElement.classList.add('reduced-motion');
+            }
+        } catch (e) {
+            prefersReducedMotion = false;
+        }
+
+        // Set Year
+        document.getElementById('year').textContent = new Date().getFullYear();
+
+        // Initialize Lucide Icons
+        // Call once to replace placeholders in DOM
+        lucide.createIcons();
+
+        /* ==========================================================================
+           1. THEMATIC WORDS DATA & FLOATING HERO CLOUD
+           ========================================================================== */
+        const POETIC_WORDS = [
+            { text: "Petrichor", theme: "Sensory Imagery" },
+            { text: "Resonance", theme: "Collective Echo" },
+            { text: "Solitude", theme: "Quiet Vulnerability" },
+            { text: "Ephemera", theme: "Fleeting Moments" },
+            { text: "Reverie", theme: "Cadence & Rhythm" },
+            { text: "Nocturne", theme: "Raw Unfiltered Prose" },
+            { text: "Whisper", theme: "Quiet Vulnerability" },
+            { text: "Labyrinth", theme: "Abstract Metaphor" },
+            { text: "Unravel", theme: "Raw Unfiltered Prose" },
+            { text: "Cadence", theme: "Cadence & Rhythm" },
+            { text: "Luminescence", theme: "Sensory Imagery" },
+            { text: "Echo", theme: "Collective Echo" },
+            { text: "Velvet", theme: "Sensory Imagery" },
+            { text: "Penumbra", theme: "Abstract Metaphor" },
+            { text: "Stillness", theme: "Quiet Vulnerability" }
+        ];
+
+        const wordCloudContainer = document.getElementById('wordCloudContainer');
+
+        function makeAccessibleChip(button, labelText) {
+            // Ensure the chip is keyboard accessible and communicates purpose.
+            button.setAttribute('aria-label', labelText);
+            // buttons are natively keyboard-accessible; add a fallback key handler for robustness
+            button.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    button.click();
+                }
+            });
+        }
+
+        function renderWordCloud() {
+            wordCloudContainer.innerHTML = '';
+            POETIC_WORDS.forEach((item, index) => {
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = `word-chip floating-word px-4 py-2 rounded-full border border-copper-500/20 bg-velvet-950/60 hover:bg-copper-500/20 hover:border-copper-500 text-sm font-serif italic text-slate-300 hover:text-copper-300 transition-all cursor-pointer shadow-sm`;
+                // Staggered animation only when user hasn't requested reduced motion
+                if (!prefersReducedMotion) {
+                    btn.style.animationDelay = `${(index * 0.35) % 3}s`;
+                    btn.style.animationDuration = `${5 + (index % 3)}s`;
+                } else {
+                    // remove animation class if reduced-motion is preferred
+                    btn.classList.remove('floating-word');
+                }
+
+                btn.innerHTML = `<span>${item.text}</span> <span class="text-[9px] font-sans font-normal opacity-50 not-italic ml-1">#${item.theme.split(' ')[0]}</span>`;
+
+                btn.onclick = () => {
+                    addWordToCanvas(item.text);
+                    highlightThemeInRadar(item.theme);
+                };
+
+                makeAccessibleChip(btn, `${item.text}, theme ${item.theme}`);
+                wordCloudContainer.appendChild(btn);
+            });
+        }
+        renderWordCloud();
+
+        /* ==========================================================================
+           2. THEMATIC SPECTRUM RADAR CHART (SVG)
+           ========================================================================== */
+        const PILLARS = [
+            { name: "Quiet Vulnerability", value: 92, desc: "Raw personal truth, emotional honesty, and unmasked confession without performance anxiety.", prompt: "Write a 4-line letter to an unsent memory." },
+            { name: "Cadence & Rhythm", value: 85, desc: "The musicality of syllables, meter, breath work, and acoustic flow during reading.", prompt: "Construct a verse using only 3-syllable line rhythms." },
+            { name: "Sensory Imagery", value: 88, desc: "Tactile, olfactory, and vivid atmospheric details that ground abstract feelings.", prompt: "Describe a silence using all five senses." },
+            { name: "Abstract Metaphor", value: 78, desc: "Surreal connections, cosmic parallels, and deep philosophical allegories.", prompt: "Compare an old habit to a physical architecture." },
+            { name: "Raw Unfiltered Prose", value: 95, desc: "Freeform stream of consciousness, broken syntax, and unpolished first drafts.", prompt: "Set a 3-minute timer and write without deleting a word." },
+            { name: "Collective Echo", value: 90, desc: "Collaborative call-and-response, shared stanzas, and community resonance.", prompt: "Pass a phrase to your neighbor and complete their couplet." }
+        ];
+
+        let activePillarIndex = 0;
+
+        function initRadarChart() {
+            const svg = document.getElementById('radarSvg');
+            const polygon = document.getElementById('radarPolygon');
+            const pointsGroup = document.getElementById('radarPoints');
+            const labelsGroup = document.getElementById('radarLabels');
+            const axesGroup = document.getElementById('radarAxes');
+
+            const centerX = 250;
+            const centerY = 250;
+            const maxRadius = 180;
+            const total = PILLARS.length;
+
+            let pointsStr = "";
+            pointsGroup.innerHTML = '';
+            labelsGroup.innerHTML = '';
+            axesGroup.innerHTML = '';
+
+            PILLARS.forEach((pillar, i) => {
+                const angle = (Math.PI * 2 / total) * i - (Math.PI / 2);
+                const r = (pillar.value / 100) * maxRadius;
+                const x = centerX + r * Math.cos(angle);
+                const y = centerY + r * Math.sin(angle);
+
+                const outerX = centerX + maxRadius * Math.cos(angle);
+                const outerY = centerY + maxRadius * Math.sin(angle);
+
+                pointsStr += `${x},${y} `;
+
+                // Draw Axis Line
+                const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+                line.setAttribute("x1", centerX);
+                line.setAttribute("y1", centerY);
+                line.setAttribute("x2", outerX);
+                line.setAttribute("y2", outerY);
+                axesGroup.appendChild(line);
+
+                // Point Marker
+                const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+                circle.setAttribute("cx", x);
+                circle.setAttribute("cy", y);
+                circle.setAttribute("r", i === activePillarIndex ? "7" : "4.5");
+                circle.setAttribute("class", `cursor-pointer transition-all ${i === activePillarIndex ? 'fill-copper-400 stroke-slate-950 stroke-2' : 'fill-copper-500/80 hover:fill-copper-300'}`);
+                circle.setAttribute('role', 'button');
+                circle.setAttribute('tabindex', '0');
+                circle.setAttribute('aria-label', `${pillar.name} emphasis ${pillar.value} percent`);
+                circle.onclick = () => selectPillar(i);
+                circle.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        selectPillar(i);
+                    }
+                });
+                pointsGroup.appendChild(circle);
+
+                // Label Positioning
+                const labelR = maxRadius + 32;
+                const labelX = centerX + labelR * Math.cos(angle);
+                const labelY = centerY + labelR * Math.sin(angle);
+
+                const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
+                text.setAttribute("x", labelX);
+                text.setAttribute("y", labelY);
+                text.setAttribute("text-anchor", Math.abs(labelX - centerX) < 10 ? "middle" : (labelX > centerX ? "start" : "end"));
+                text.setAttribute("dominant-baseline", "middle");
+                text.setAttribute("class", `cursor-pointer text-[12px] font-sans font-medium transition-all ${i === activePillarIndex ? 'fill-copper-400 font-bold' : 'fill-slate-300 hover:fill-slate-100'}`);
+                text.textContent = pillar.name;
+                // make label clickable via pointer events; for accessibility provide a hidden button alternative when needed
+                text.onclick = () => selectPillar(i);
+                labelsGroup.appendChild(text);
+            });
+
+            polygon.setAttribute("points", pointsStr.trim());
+            renderPillarList();
+        }
+
+        function selectPillar(index) {
+            activePillarIndex = index;
+            initRadarChart();
+            const pillar = PILLARS[index];
+            document.getElementById('activeThemeDesc').innerHTML = `
+                <strong class="text-copper-400">${pillar.name}:</strong> ${pillar.desc}
+                <div class="mt-2 text-slate-300 italic">"Prompt: ${pillar.prompt}"</div>
+            `;
+        }
+
+        function highlightThemeInRadar(themeName) {
+            const index = PILLARS.findIndex(p => p.name.toLowerCase().includes(themeName.toLowerCase()));
+            if (index !== -1) {
+                selectPillar(index);
+                document.getElementById('theme-chart').scrollIntoView({ behavior: 'smooth' });
+            }
+        }
+
+        function renderPillarList() {
+            const list = document.getElementById('pillarList');
+            list.innerHTML = '';
+            PILLARS.forEach((p, idx) => {
+                const item = document.createElement('div');
+                item.className = `p-3 rounded-lg border text-xs cursor-pointer transition-all flex items-center justify-between ${idx === activePillarIndex ? 'border-copper-500 bg-copper-500/10 text-slate-100' : 'border-copper-500/10 hover:border-copper-500/30 text-slate-400'}`;
+                item.setAttribute('role', 'button');
+                item.setAttribute('tabindex', '0');
+                item.onclick = () => selectPillar(idx);
+                item.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        selectPillar(idx);
+                    }
+                });
+                item.innerHTML = `
+                    <span class="font-medium">${p.name}</span>
+                    <span class="font-mono text-copper-400 text-[10px]">${p.value}% emphasis</span>
+                `;
+                list.appendChild(item);
+            });
+        }
+
+        initRadarChart();
+
+        /* ==========================================================================
+           3. INTERACTIVE WRITER'S DESK / MAGNET TRAY & CANVAS
+           ========================================================================== */
+        const MAGNET_WORDS = [
+            "soft", "unspoken", "midnight", "echoes", "lantern", "dust",
+            "rain", "silence", "shadow", "remember", "thread", "velvet",
+            "slowly", "breath", "unfurl", "paper", "spilling", "warmth",
+            "constellation", "whisper", "hollow", "glow", "drift", "canvas"
+        ];
+
+        const poemTextarea = document.getElementById('poemTextarea');
+        const wordCountDisplay = document.getElementById('wordCountDisplay');
+
+        function shuffleTray() {
+            const tray = document.getElementById('magnetTray');
+            tray.innerHTML = '';
+            // Shuffle array
+            const shuffled = [...MAGNET_WORDS].sort(() => 0.5 - Math.random());
+            shuffled.forEach(word => {
+                const chip = document.createElement('button');
+                chip.type = 'button';
+                chip.className = 'word-chip px-3 py-1.5 rounded-lg bg-velvet-950 border border-copper-500/30 text-slate-300 hover:text-copper-300 hover:border-copper-400 text-xs font-serif italic';
+                chip.textContent = word;
+                chip.onclick = () => addWordToCanvas(word);
+                makeAccessibleChip(chip, `${word}, add to canvas`);
+                tray.appendChild(chip);
+            });
+            // recreate icons if the tray contains icon placeholders (safety)
+            lucide.createIcons();
+        }
+
+        function addWordToCanvas(word) {
+            const current = poemTextarea.value;
+            poemTextarea.value = current ? `${current.trim()} ${word}` : word;
+            updateWordCount();
+            poemTextarea.focus();
+            playTypewriterSound();
+        }
+
+        function updateWordCount() {
+            const text = poemTextarea.value.trim();
+            const count = text ? text.split(/\s+/).length : 0;
+            wordCountDisplay.textContent = `${count} word${count === 1 ? '' : 's'}`;
+        }
+
+        poemTextarea.addEventListener('input', () => {
+            updateWordCount();
+            playTypewriterSound();
+        });
+
+        function clearCanvasSheet() {
+            poemTextarea.value = '';
+            updateWordCount();
+            poemTextarea.focus();
+        }
+
+        function generateRandomLines() {
+            const starters = [
+                "The quiet room holds what we could not say,",
+                "Under midnight lamps, the paper slowly breathes,",
+                "A single whisper threads through the heavy rain,",
+                "We gather softly, leaving our titles at the door,"
+            ];
+            const enders = [
+                "and every word becomes a sanctuary.",
+                "where shadows unravel into light.",
+                "echoing in the stillness of our hands.",
+                "waiting for the first stanza to begin."
+            ];
+
+            const line1 = starters[Math.floor(Math.random() * starters.length)];
+            const line2 = enders[Math.floor(Math.random() * enders.length)];
+            poemTextarea.value = `${line1}\n${line2}`;
+            updateWordCount();
+            poemTextarea.focus();
+        }
+
+        function copyPoem() {
+            const text = poemTextarea.value;
+            if (!text) return;
+            navigator.clipboard.writeText(text).then(() => {
+                const toast = document.getElementById('copyToast');
+                toast.classList.remove('opacity-0');
+                setTimeout(() => toast.classList.add('opacity-0'), 2500);
+            });
+        }
+
+        function submitToCircle() {
+            const text = poemTextarea.value;
+            if (!text) {
+                alert("Please write or generate a line first!");
+                return;
+            }
+            document.getElementById('circle').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        shuffleTray();
+
+        /* ==========================================================================
+           4. AUDIO AMBIANCE SYNTHESIZER (Web Audio API - Rain & Typewriter)
+           ========================================================================== */
+        let audioCtx = null;
+        let isAudioPlaying = false;
+        let noiseNode = null;
+        let gainNode = null;
+
+        function toggleAudio() {
+            const icon = document.getElementById('audioIcon');
+            const audioToggleBtn = document.getElementById('audioToggle');
+            if (!isAudioPlaying) {
+                startAmbientSound();
+                isAudioPlaying = true;
+                audioToggleBtn.setAttribute('aria-pressed', 'true');
+                if (icon) icon.setAttribute('data-lucide', 'volume-2');
+            } else {
+                stopAmbientSound();
+                isAudioPlaying = false;
+                audioToggleBtn.setAttribute('aria-pressed', 'false');
+                if (icon) icon.setAttribute('data-lucide', 'volume-x');
+            }
+            // Recreate icons so data-lucide attribute updates take effect
+            lucide.createIcons();
+        }
+
+        function startAmbientSound() {
+            if (prefersReducedMotion) {
+                // if user wants reduced motion/sound, avoid starting ambient audio
+                return;
+            }
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+
+            try {
+                // Create soft filtered pink noise for rain/room ambiance
+                const bufferSize = audioCtx.sampleRate * 2;
+                const noiseBuffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+                const output = noiseBuffer.getChannelData(0);
+                let b0 = 0, b1 = 0, b2 = 0, b3 = 0, b4 = 0, b5 = 0, b6 = 0;
+
+                for (let i = 0; i < bufferSize; i++) {
+                    let white = Math.random() * 2 - 1;
+                    b0 = 0.99886 * b0 + white * 0.0555179;
+                    b1 = 0.99332 * b1 + white * 0.0750759;
+                    b2 = 0.96900 * b2 + white * 0.1538520;
+                    b3 = 0.86650 * b3 + white * 0.3104856;
+                    b4 = 0.55000 * b4 + white * 0.5329522;
+                    b5 = -0.7616 * b5 - white * 0.0168980;
+                    output[i] = b0 + b1 + b2 + b3 + b4 + b5 + b6 + white * 0.5362;
+                    output[i] *= 0.015; // Soft volume
+                    b6 = white * 0.115926;
+                }
+
+                noiseNode = audioCtx.createBufferSource();
+                noiseNode.buffer = noiseBuffer;
+                noiseNode.loop = true;
+
+                const filter = audioCtx.createBiquadFilter();
+                filter.type = 'lowpass';
+                filter.frequency.value = 800;
+
+                gainNode = audioCtx.createGain();
+                gainNode.gain.value = 0.15;
+
+                noiseNode.connect(filter);
+                filter.connect(gainNode);
+                gainNode.connect(audioCtx.destination);
+
+                noiseNode.start();
+            } catch (err) {
+                console.warn('Unable to start ambient audio', err);
+            }
+        }
+
+        function stopAmbientSound() {
+            try {
+                if (noiseNode) {
+                    try { noiseNode.stop(); } catch (e) {}
+                    noiseNode.disconnect();
+                    noiseNode = null;
+                }
+                if (gainNode) {
+                    try { gainNode.disconnect(); } catch (e) {}
+                    gainNode = null;
+                }
+                if (audioCtx) {
+                    const ctx = audioCtx;
+                    // Close AudioContext to free resources
+                    if (ctx.state !== 'closed') {
+                        ctx.close().catch(() => { /* swallow close errors */ });
+                    }
+                    audioCtx = null;
+                }
+            } catch (e) {
+                console.warn('Error stopping audio:', e);
+            }
+        }
+
+        function playTypewriterSound() {
+            if (!isAudioPlaying || !audioCtx) return;
+            try {
+                const osc = audioCtx.createOscillator();
+                const clickGain = audioCtx.createGain();
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(300 + Math.random() * 200, audioCtx.currentTime);
+                clickGain.gain.setValueAtTime(0.02, audioCtx.currentTime);
+                clickGain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.04);
+
+                osc.connect(clickGain);
+                clickGain.connect(audioCtx.destination);
+
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.04);
+            } catch (e) {
+                // ignore errors in audio playback
+            }
+        }
+
+        // Ensure audio is cleaned up on page unload
+        window.addEventListener('beforeunload', () => {
+            stopAmbientSound();
+        });
+
+        /* ==========================================================================
+           5. CANVAS PARTICLES (Floating Light Embers)
+           ========================================================================== */
+        const canvas = document.getElementById('ambientCanvas');
+        const ctx = canvas.getContext('2d');
+        let particles = [];
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        class Particle {
+            constructor() {
+                this.reset();
+            }
+            reset() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.size = Math.random() * 1.8 + 0.5;
+                this.speedY = -(Math.random() * 0.3 + 0.1);
+                this.opacity = Math.random() * 0.5 + 0.1;
+            }
+            update() {
+                this.y += this.speedY;
+                if (this.y < 0) this.reset();
+            }
+            draw() {
+                ctx.fillStyle = `rgba(200, 113, 72, ${this.opacity})`;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        let animationFrameId = null;
+
+        function setupParticles() {
+            // If user prefers reduced motion OR on small devices, disable particles
+            const smallScreen = window.innerWidth < 640;
+            if (prefersReducedMotion || smallScreen) {
+                canvas.style.display = 'none';
+                particles = [];
+                return;
+            } else {
+                canvas.style.display = '';
+            }
+
+            particles = [];
+            const count = 35;
+            for (let i = 0; i < count; i++) {
+                particles.push(new Particle());
+            }
+        }
+
+        function animateCanvas() {
+            if (particles.length === 0) return;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            particles.forEach(p => {
+                p.update();
+                p.draw();
+            });
+            animationFrameId = requestAnimationFrame(animateCanvas);
+        }
+
+        setupParticles();
+        if (!prefersReducedMotion && particles.length > 0) {
+            animateCanvas();
+        }
+
+        // If window is resized down to small width, stop animation to save CPU
+        window.addEventListener('resize', () => {
+            if (animationFrameId) {
+                cancelAnimationFrame(animationFrameId);
+                animationFrameId = null;
+            }
+            setupParticles();
+            if (!prefersReducedMotion && particles.length > 0) {
+                animateCanvas();
+            }
+        });
+
+        /* ==========================================================================
+           6. THEME TOGGLE & FORM HANDLING (a11y improvements)
+           ========================================================================== */
+        function toggleTheme() {
+            const body = document.body;
+            const isDark = body.classList.toggle('dark');
+            document.getElementById('themeToggleBtn').setAttribute('aria-pressed', String(isDark));
+            // Re-create Lucide icons so icon variants that depend on classes update
+            lucide.createIcons();
+        }
+
+        function handleJoinSubmit(e) {
+            e.preventDefault();
+            // Hide form and reveal success region in an accessible way
+            const form = document.getElementById('joinForm');
+            const success = document.getElementById('joinSuccess');
+            form.classList.add('hidden');
+            success.classList.remove('hidden');
+            success.setAttribute('aria-hidden', 'false');
+            // ensure icons rendered
+            lucide.createIcons();
+            // Move focus to the success message for screen reader users
+            success.focus?.();
+        }
+
+        // Make joinSuccess focusable for a11y (so we can focus it programmatically)
+        document.getElementById('joinSuccess').setAttribute('tabindex', '-1');
+
+        // End of script
+    </script>
+</body>
+  </html>
