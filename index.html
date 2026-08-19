@@ -138,6 +138,10 @@
                 <a href="#theme-chart" class="hover:text-copper-400 transition-colors">Thematic Spectrum</a>
                 <a href="#blank-canvas" class="hover:text-copper-400 transition-colors">The Blank Sheet</a>
                 <a href="#circle" class="hover:text-copper-400 transition-colors">Weekly Gathering</a>
+                <a href="/" class="hover:text-copper-400 transition-colors">Home</a>
+                <a href="/account" class="hover:text-copper-400 transition-colors">Account</a>
+                <a href="/work" class="hover:text-copper-400 transition-colors">Work</a>
+
             </nav>
 
             <!-- Quick Action Controls -->
@@ -1015,6 +1019,8 @@
         document.getElementById('joinSuccess').setAttribute('tabindex', '-1');
 
         // End of script
+    const menuBtn = document.querySelector('button[data-lucide="menu"]'); const menu = document.querySelector('nav'); menuBtn.addEventListener('click', () => menu.classList.toggle('hidden'));
+
     </script>
 </body>
   </html>
